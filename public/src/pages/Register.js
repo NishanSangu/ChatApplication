@@ -1,15 +1,68 @@
-import React from 'react'
+import React, {useState, useEffect} from 'react'
 import styled from "styled-components"
 import { Link } from "react-router-dom"
 import Logo from "../assets/logo.svg"
+import { ToastContainer, toast } from "react-toastify"
+import 'react-toastify/dist/ReactToastify.css';
+import axios from "axios";
+import { registerRoute } from '../utils/APIRoutes'
+
+
 
 export default function Register() {
-    const handleSubmit = (event) => {
+    const [values, setValues] = useState({
+        username: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+    });
+
+    const toastOptions = {
+        position: "bottom-right",
+        autoClose: 8000,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "dark",
+    }
+
+    const handleSubmit = async(event) => {
         event.preventDefault();
-        alert("form")
+        if (handleValidation()) {
+            console.log("In validsation",registerRoute)
+
+            const { password, confirmPassword, username, email } = values;
+            const { data } = await axios.post(registerRoute, {
+                username,
+                email,
+                password
+            });
+        }
     };
 
+    const handleValidation = () => {
+        const { password, confirmPassword, username, email } = values;
+         if (username.length < 4) {
+            toast.error("Username should be greater than 4 characters.", toastOptions);
+            return false;
+         } else if (password.length < 8) {
+            toast.error("password should be greater than or equal 8 characters.", toastOptions);
+            return false;
+        }else if (email === "") {
+            toast.error("Email can't be blank!", toastOptions);
+            return false;
+        }
+        else if (password !== confirmPassword) {
+            // console.log("validation", toast);
+            toast.error("password and confirm password should be same.", toastOptions);
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+
     const handleChange = (event) => {
+        setValues({ ...values, [event.target.name]:event.target.value})
     }
 
     return (
@@ -45,7 +98,8 @@ export default function Register() {
                         Already have an account ? <Link to="/login">Login</Link>
                     </span>
             </form>
-    </FormContainer>
+            </FormContainer>
+            <ToastContainer/>
     </>
 )
 }
